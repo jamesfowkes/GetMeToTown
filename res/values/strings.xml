@@ -1,0 +1,11 @@
+<resources>
+
+    <string name="app_name">GetMeToTown</string>
+	<string name="daydream_name">GetMeToTown</string>
+	
+	<string name="button_updating">Updating&#8230;</string>
+	<string name="button_idle">Update Now</string>
+	<string name="default_text">No data&#8230;</string>
+	
+	<string name="textview_content_desc">Transport provider logo</string>
+</resources>

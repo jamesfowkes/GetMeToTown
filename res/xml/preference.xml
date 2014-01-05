@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <PreferenceCategory
+		android:title="Configuration">
+		<EditTextPreference
+			android:key="minutes_before_removal_preference"
+			android:title="Minutes before removal"
+			android:summary="Number of minutes remaining when a journey disappears"
+			android:dialogTitle="Minutes:"
+			android:inputType="number" />
+		<EditTextPreference
+			android:key="minutes_to_highlight_preference"
+			android:title="Highlight minutes"
+			android:summary="Number of minutes remaining when a journey is highlighted"
+			android:dialogTitle="Minutes:"
+			android:inputType="number" />
+    </PreferenceCategory>
+</PreferenceScreen>

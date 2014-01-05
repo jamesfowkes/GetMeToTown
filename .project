@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>GetMeToTown</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.ResourceManagerBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.PreCompilerBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.ApkBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>libs/joda-time-2.3.jar</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/Program%20Files/JAVA/jdk1.7.0_45/jre/lib/ext/joda-time-2.3.jar</locationURI>
+		</link>
+		<link>
+			<name>libs/stateless4j-1.0.0.jar</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/Program%20Files/JAVA/jdk1.7.0_45/jre/lib/ext/stateless4j-1.0.0.jar</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>
