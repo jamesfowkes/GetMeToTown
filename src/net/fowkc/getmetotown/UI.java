@@ -3,8 +3,12 @@ package net.fowkc.getmetotown;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+
 import android.graphics.Color;
 import android.service.dreams.DreamService;
+
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,9 +36,8 @@ public class UI {
 		service = parentService;
 	}
 	
-	public void createLayout(int rows, OnClickListener onClickListener)
+	public void createLayout(int rows, DateTime lastUpdated, OnClickListener onClickListener)
 	{
-		
 		numberOfRows = rows;
 		
 		LayoutParams linearParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
@@ -48,9 +51,9 @@ public class UI {
 		
 		// Layout parameters for the image and text views (inside table row)
 		TableRow.LayoutParams imageParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.MATCH_PARENT);
-		TableRow.LayoutParams textParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT, 1);
+		TableRow.LayoutParams textParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
 		
-		textParams.gravity = Gravity.CENTER;
+		textParams.gravity = Gravity.LEFT + Gravity.CENTER_VERTICAL;
 		
 		LinearLayout linearLayout = new LinearLayout(service);
 		linearLayout.setLayoutParams(linearParams);
@@ -75,18 +78,32 @@ public class UI {
 			tableRow.addView(imageViews[i]);
 			
 			textViews[i] = getNewTextView(i);
-			textViews[i].setPadding(0, 10, 10, 10);
 			textViews[i].setLayoutParams(textParams);
 			tableRow.addView(textViews[i]);
 			
 			tableLayout.addView(tableRow);
 		}
 		
-		// The bottom row has the update button
+		// The bottom row has the update button and time
+		
 		updateBtn = new Button(service);
-		updateBtn.setText(R.string.button_idle);
+		
+		String buttonText;
+		
+		if (lastUpdated != null)
+		{
+			buttonText = new DateTime().toString(DateTimeFormat.forPattern("HH:mm")) +
+					" (Last update " + lastUpdated.toString(DateTimeFormat.forPattern("HH:mm")) + ")";
+		}
+		else
+		{
+			buttonText = new DateTime().toString(DateTimeFormat.forPattern("HH:mm"));
+		}
+		
+		updateBtn.setText(buttonText);
 		updateBtn.setBackgroundColor(Color.TRANSPARENT);
 		updateBtn.setTextColor(Color.GRAY);
+		updateBtn.setTextSize(service.getResources().getInteger(R.integer.max_text_size));
 		updateBtn.setOnClickListener(onClickListener);
 		updateBtn.setLayoutParams(buttonParams);
 		
@@ -106,9 +123,10 @@ public class UI {
 		return (v instanceof Button) && ((Button)v == updateBtn);
 	}
 	
-	public void setButtonText(int resid) { updateBtn.setText(resid); }
-	
-	public void setButtonText(String text) { updateBtn.setText(text); }
+	public void setUpdating()
+	{
+		updateBtn.setText(R.string.button_updating);
+	}
 	
 	public void setDisplayRow(int i, String imageKey, String displayString, boolean highlight)
 	{

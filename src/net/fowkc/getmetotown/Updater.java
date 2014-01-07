@@ -7,13 +7,14 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-
 import net.fowkc.transportscraper.Journey;
 import net.fowkc.transportscraper.JourneyManager;
 import net.fowkc.transportscraper.NextBusesScraper;
 import net.fowkc.transportscraper.TrainTimesScraper;
+
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -56,14 +57,20 @@ public class Updater {
 		
 		for (Journey j : journeyManager.journeys())
 		{
-			needToUpdate |= (j.remainingTime() <= 0);
+			needToUpdate |= (j.remainingTime() == 0);
 		}
 		
-		Period diff = new Period(new DateTime(), lastUpdated);
+		Duration diff = new Duration(lastUpdated, new DateTime());
+		Log.i("Updater", Long.toString(diff.getStandardMinutes()));
 		
-		needToUpdate = diff.getMinutes() > maximumUpdateTime;
+		needToUpdate |= (diff.getStandardMinutes() > maximumUpdateTime);
 		
 		return needToUpdate;
+	}
+	
+	public DateTime lastUpdate()
+	{
+		return lastUpdated;
 	}
 	
 	public class UpdateTask extends AsyncTask<URL, Integer, Long> {

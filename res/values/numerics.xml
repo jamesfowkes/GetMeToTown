@@ -5,5 +5,6 @@
    	<integer name="default_hightlight_time">4</integer>
    	<integer name="rows_to_show">8</integer>
    	<integer name="max_text_size">40</integer>
-   	<integer name="maximum_update_interval">30</integer>
+   	<integer name="maximum_update_interval">15</integer>
+   	<integer name="switch_to_remaining_minutes">20</integer>
 </resources>

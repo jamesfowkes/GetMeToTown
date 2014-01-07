@@ -1,6 +1,5 @@
 package net.fowkc.getmetotown;
 
-import java.util.Date;
 import java.util.List;
 
 import net.fowkc.transportscraper.Journey;
@@ -48,14 +47,14 @@ public class GetMeToTown extends DreamService implements OnClickListener
 	Callback updateCompleteCallback = new Callback() {
 		public void invoke() throws Exception
 		{
-			sm.Fire(Event.UPDATE_COMPLETE);
+			smEvent(Event.UPDATE_COMPLETE);
 		}
 	};
 	
 	Action onStartUpdate = new Action() {
 		@Override
 		public void doIt() {
-			ui.setButtonText(R.string.button_updating);
+			ui.setUpdating();
 			updater.startUpdate(updateCompleteCallback);
 		}
 	};
@@ -63,7 +62,7 @@ public class GetMeToTown extends DreamService implements OnClickListener
 	Action onUpdateComplete = new Action() {
 		@Override
 		public void doIt() {
-			onUpdateComplete();
+			updateDisplay();
 		}
 	};
 	
@@ -104,16 +103,17 @@ public class GetMeToTown extends DreamService implements OnClickListener
 		updater = new Updater();
 		
 		ui = new UI(this);
-		ui.createLayout(getResources().getInteger(R.integer.rows_to_show), this);
+		ui.createLayout(0, null, this);
 		
 		handler = new Handler();
 		
 		createApplicationData();
 
+		dumpPreferencesToLog();
+		
 		smEvent(Event.GET_JOURNEYS_REQ);
 		
-		int seconds_to_next_update = getResources().getInteger(R.integer.update_tick_seconds);
-		handler.postDelayed(applicationTick, seconds_to_next_update * 1000);
+		handler.postDelayed(applicationTick, displayUpdateIntervalMs());
 	}
 	
 	void configureStateMachine()
@@ -151,6 +151,15 @@ public class GetMeToTown extends DreamService implements OnClickListener
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 	}
 	
+	void dumpPreferencesToLog()
+	{
+		Log.i(this.getPackageName(), String.format("Minutes before removal: %d", minutesBeforeRemoval()));
+		Log.i(this.getPackageName(), String.format("Maximum update interval: %d", maximumUpdateInterval()));
+		Log.i(this.getPackageName(), String.format("Rows to display: %d", rowsToDisplay()));
+		Log.i(this.getPackageName(), String.format("Switch to time remaining: %d", displayRemainingTimeWhenLessThan()));
+		Log.i(this.getPackageName(), String.format("Display update interval: %d", displayUpdateIntervalMs()));
+	}
+	
 	@Override
 	public void onDetachedFromWindow() {
 		super.onDetachedFromWindow();
@@ -162,16 +171,18 @@ public class GetMeToTown extends DreamService implements OnClickListener
 		
 		List<Journey> journeys = updater.getSortedJourneys();
 		
-		if (journeys.size() < getResources().getInteger(R.integer.rows_to_show))
+		int rowsToDisplay = rowsToDisplay();
+		
+		if (journeys.size() < rowsToDisplay)
 		{
-			ui.createLayout(journeys.size(), this);
+			ui.createLayout(journeys.size(), updater.lastUpdate(), this);
 		}
 		else
 		{
-			ui.createLayout(getResources().getInteger(R.integer.rows_to_show), this);
+			ui.createLayout(rowsToDisplay, updater.lastUpdate(), this);
 		}
 		
-		for (Journey j : updater.getSortedJourneys())
+		for (Journey j : journeys)
 		{
 			int remainingTime = j.remainingTime();
 			int highlightTime = getResources().getInteger(R.integer.default_hightlight_time);
@@ -181,13 +192,30 @@ public class GetMeToTown extends DreamService implements OnClickListener
 				highlightTime = Integer.parseInt(prefs.getString("minutes_to_highlight_preference", Integer.toString(highlightTime)));
 				
 				boolean highlight = remainingTime < highlightTime;
-				String displayString = Integer.toString(remainingTime) + " minutes";
+				boolean showAsTime = remainingTime > displayRemainingTimeWhenLessThan();
 				
-				ui.setDisplayRow(i, j.transportName(), displayString, highlight);
+				StringBuilder displayString = new StringBuilder();
+				
+				if (showAsTime)
+				{
+					displayString.append(j.leavingTimeFormatted("HH:mm"));
+				}
+				else
+				{
+					displayString.append(Integer.toString(remainingTime));
+					displayString.append(j.isDelayed() ? " m" : " minutes");
+				}
+				
+				if (j.isDelayed())
+				{
+					displayString.append( " (" + Integer.toString(j.delay()) + "m late)" );
+				}
+				
+				ui.setDisplayRow(i, j.transportName(), displayString.toString(), highlight);
 			
 				i++;
 			}
-		}	
+		}
 	}
 	
 	private int minutesBeforeRemoval()
@@ -197,27 +225,51 @@ public class GetMeToTown extends DreamService implements OnClickListener
 		return minutes;
 	}
 	
-	private void onUpdateComplete()
-	{
-		updateDisplay();
-		ui.setButtonText(getString(R.string.button_idle) + String.format(" (Last Update at %1$tH:%1$tM)", new Date()));
+	private int maximumUpdateInterval()
+	{	
+		int minutes = getResources().getInteger(R.integer.maximum_update_interval);
+		minutes = Integer.parseInt(prefs.getString("maximum_update_interval_preference", Integer.toString(minutes)));
+		return minutes;
 	}
-		
+	
+	private int rowsToDisplay()
+	{
+		int rows = getResources().getInteger(R.integer.rows_to_show);
+		rows = Integer.parseInt(prefs.getString("rows_to_display_preference", Integer.toString(rows)));
+		return rows;
+	}
+	
+	private int displayRemainingTimeWhenLessThan()
+	{
+		int minutes = getResources().getInteger(R.integer.switch_to_remaining_minutes);
+		minutes = Integer.parseInt(prefs.getString("switch_to_remaining_minutes", Integer.toString(minutes)));
+		return minutes;
+	}
+	
+	private int displayUpdateIntervalMs()
+	{
+		return getResources().getInteger(R.integer.update_tick_seconds) * 1000;
+	}
+	
 	private Runnable applicationTick = new Runnable() {
 	   @Override
 	   public void run() {
 
-		   if (updater.isUpdateRequired(getResources().getInteger(R.integer.maximum_update_interval)))
+		   if (sm.getState() == State.IDLE)
 		   {
-			   smEvent(Event.GET_JOURNEYS_REQ);
-		   }
-		   else
-		   {
-			   smEvent(Event.REDRAW_DISPLAY_REQ);
+			   int maximumUpdateInterval = maximumUpdateInterval();
+			   
+			   if (updater.isUpdateRequired(maximumUpdateInterval))
+			   {
+				   smEvent(Event.GET_JOURNEYS_REQ);
+			   }
+			   else
+			   {
+				   smEvent(Event.REDRAW_DISPLAY_REQ);
+			   }
 		   }
 		   
-		   int seconds_to_next_update = getResources().getInteger(R.integer.update_tick_seconds);
-		   handler.postDelayed(this, seconds_to_next_update * 1000);
+		   handler.postDelayed(this, displayUpdateIntervalMs());
 	   }
 	};
 	

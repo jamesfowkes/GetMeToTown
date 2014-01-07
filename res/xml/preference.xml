@@ -14,5 +14,23 @@
 			android:summary="Number of minutes remaining when a journey is highlighted"
 			android:dialogTitle="Minutes:"
 			android:inputType="number" />
+		<EditTextPreference
+			android:key="rows_to_display_preference"
+			android:title="Rows to display"
+			android:summary="How many rows to display"
+			android:dialogTitle="Rows:"
+			android:inputType="number" />
+		<EditTextPreference
+			android:key="maximum_update_interval_preference"
+			android:title="Time between updates"
+			android:summary="Maximum time between updates"
+			android:dialogTitle="Minutes:"
+			android:inputType="number" />
+		<EditTextPreference
+			android:key="switch_to_remaining_minutes"
+			android:title="Countdown time"
+			android:summary="Time remaining when display switches from showing time to showing minutes left"
+			android:dialogTitle="Minutes:"
+			android:inputType="number" />
     </PreferenceCategory>
 </PreferenceScreen>
